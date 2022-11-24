@@ -26,9 +26,6 @@ NAME				=	pipc
 #	one for each extension. Use this variable to specify this directory.
 #
 
-INI_DIR				=	/etc/php/7.4/mods-available/
-
-
 #
 #	The extension dirs
 #
@@ -39,6 +36,8 @@ INI_DIR				=	/etc/php/7.4/mods-available/
 #
 
 EXTENSION_DIR		=	$(shell php-config --extension-dir)
+INI_DIR				=	$(shell php-config --ini-dir)
+PHP_INCLUDES		=	$(shell php-config --includes)
 
 
 #
@@ -82,7 +81,7 @@ LINKER				=	g++
 #	with a list of all flags that should be passed to the linker.
 #
 
-COMPILER_FLAGS		=	-Wall -c -O2 -std=c++11 -fpic -o
+COMPILER_FLAGS		=	-Wall -c -O2 -std=c++11 -fpic ${PHP_INCLUDES}
 LINKER_FLAGS		=	-shared
 LINKER_DEPENDENCIES	=	-lphpcpp
 
@@ -97,6 +96,7 @@ LINKER_DEPENDENCIES	=	-lphpcpp
 RM					=	rm -f
 CP					=	cp -f
 MKDIR				=	mkdir -p
+LN					=   ln -s
 
 
 #
@@ -120,12 +120,16 @@ all:					${OBJECTS} ${EXTENSION}
 ${EXTENSION}:			${OBJECTS}
 						${LINKER} ${LINKER_FLAGS} -o $@ ${OBJECTS} ${LINKER_DEPENDENCIES}
 
-${OBJECTS}:
-						${COMPILER} ${COMPILER_FLAGS} $@ ${@:%.o=%.cpp}
+#${OBJECTS}:				${SOURCES} Makefile
+#						${COMPILER} ${COMPILER_FLAGS} $@ ${@:%.o=%.cpp}
+.cpp.o:
+						${COMPILER} ${COMPILER_FLAGS} $< -o $@
 
 install:
 						${CP} ${EXTENSION} ${EXTENSION_DIR}
-						${CP} ${INI} ${INI_DIR}
+						${CP} ${INI} ${EXTENSION_DIR}
+						${RM} ${INI_DIR}/20-${INI}
+						${LN} ${EXTENSION_DIR}/${INI} ${INI_DIR}/20-${INI}
 
 clean:
 						${RM} ${EXTENSION} ${OBJECTS}

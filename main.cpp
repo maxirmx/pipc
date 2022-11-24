@@ -1,8 +1,15 @@
+#include <php_version.h>
+#include <iostream>
 #include <phpcpp.h>
 
-/**
- *  tell the compiler that the get_module is a pure C function
- */
+using namespace std;
+
+void send_message()
+{
+    cout << "In send_message()" << endl;
+    cout << PHP_VERSION_ID << endl;
+}
+
 extern "C" {
 
     /**
@@ -16,11 +23,10 @@ extern "C" {
     {
         // static(!) Php::Extension object that should stay in memory
         // for the entire duration of the process (that's why it's static)
-        static Php::Extension extension("pipc", "0.1");
+        static Php::Extension extension("pipc", "1.0");
 
-        // @todo    add your own functions, classes, namespaces to the extension
-
-        // return the extension
+       // add function to extension
+        extension.add<send_message>("send_message");
         return extension;
     }
 }
