@@ -58,3 +58,9 @@ jobs:
 # -DBUILD_ALL=ON
 # or
 # -DBUILD_TEST=ON -DINTROSPECTION=OFF -DBINDING_C=ON -DEXAMPLES=ON
+
+      - name: Build pipc extension
+        run: |
+          cd pipc
+          make
+          sudo make install

@@ -1,8 +1,5 @@
 #
-#	Makefile template
-#
-#	This is an example Makefile that can be used by anyone who is building
-#	his or her own PHP extensions using the PHP-CPP library.
+#	pipc extension makefile
 #
 #	In the top part of this file we have included variables that can be
 #	altered to fit your configuration, near the bottom the instructions and
@@ -18,7 +15,7 @@
 #	are automatically generated
 #
 
-NAME				=	yourextension
+NAME				=	pipc
 
 
 #
@@ -29,7 +26,7 @@ NAME				=	yourextension
 #	one for each extension. Use this variable to specify this directory.
 #
 
-INI_DIR				=	/etc/php5/mods-available/
+INI_DIR				=	/etc/php/7.4/mods-available/
 
 
 #
