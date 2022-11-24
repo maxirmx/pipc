@@ -12,6 +12,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-20.04
+    env:
+      MAKEFLAGS: -j4
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -22,22 +24,37 @@ jobs:
       - name: Install packages
         run: |
           pipc/scripts/switch_version.sh
-          sudo apt install php-dev
+          sudo apt update
+          sudo apt install php-dev libacl1-dev libncurses5-dev
+# Already there gcc g++ cmake pkg-config
 
-#      - name: Setup PHP
-#        uses: shivammathur/setup-php@v2
-#        with:
-#          php-version: '7.4'
-
-      - name: Checkout tools repo
+      - name: Checkout PHP-CPP
         uses: actions/checkout@v3
         with:
           repository: CopernicaMarketingSoftware/PHP-CPP
           path: PHP-CPP
           fetch-depth: 1
 
-      - name: Build PHP-CPP
+      - name: Build and install PHP-CPP
         run: |
           cd PHP-CPP
-          make -j4
+          make
           sudo make install
+
+      - name: Checkout iceoryx
+        uses: actions/checkout@v3
+        with:
+          repository: eclipse-iceoryx/iceoryx
+          path: iceoryx
+          fetch-depth: 1
+
+      - name: Build and install iceoryx
+        run: |
+          cd iceoryx
+          cmake -Bbuild -Hiceoryx_meta
+          cmake --build build
+          sudo cmake --install build
+# or
+# -DBUILD_ALL=ON
+# or
+# -DBUILD_TEST=ON -DINTROSPECTION=OFF -DBINDING_C=ON -DEXAMPLES=ON
