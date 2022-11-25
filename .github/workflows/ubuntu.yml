@@ -48,10 +48,16 @@ jobs:
           path: iceoryx
           fetch-depth: 1
 
+      - name: Cache iceoryx
+        uses: actions/cache@v3
+        with:
+          path: iceoryx/build
+          key: iceoryx-v2.90-0000
+
       - name: Build and install iceoryx
         run: |
           cd iceoryx
-          cmake -Bbuild -Hiceoryx_meta
+          cmake -Bbuild -Hiceoryx_meta -DBUILD_ALL=ON
           cmake --build build
           sudo cmake --install build
 # or
@@ -62,9 +68,15 @@ jobs:
       - name: Build pipc extension
         run: |
           cd pipc
-          make
-          sudo make install
+          cmake -Bbuild
+          cmake --build build
+          sudo cmake --install build
 
       - name: Run tests
         run: |
-          php -r "send_message();"
+          set -o errexit -o pipefail -o noclobber -o nounset
+          cd pipc
+          iceperf-roudi &
+          export ROUDI_PID=$!
+          php test.php
+          kill -SIGTERM $ROUDI_PID

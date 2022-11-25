@@ -1,13 +1,23 @@
-#include <php_version.h>
 #include <iostream>
+
+#include "iceoryx_posh/popo/publisher.hpp"
+#include "iceoryx_posh/runtime/posh_runtime.hpp"
+
 #include <phpcpp.h>
 
 using namespace std;
 
-void send_message()
+Php::Value initialize_publisher(Php::Parameters &params)
 {
-    cout << "In send_message()" << endl;
-    cout << PHP_VERSION_ID << endl;
+    constexpr char APP_NAME[] = "pipc-publisher";
+    iox::runtime::PoshRuntime::initRuntime(APP_NAME);
+
+    return 0;
+}
+
+void send_message(Php::Parameters &params)
+{
+    cout << "Message: '" << params[0] << "'" << endl;
 }
 
 extern "C" {
@@ -25,8 +35,14 @@ extern "C" {
         // for the entire duration of the process (that's why it's static)
         static Php::Extension extension("pipc", "1.0");
 
-       // add function to extension
-        extension.add<send_message>("send_message");
+        extension.add<initialize_publisher>("pipc_initialize_publisher", {
+            Php::ByVal("channel", Php::Type::String)
+        });
+
+        extension.add<send_message>("pipc_send_message", {
+            Php::ByRef("message", Php::Type::String)
+        });
+
         return extension;
     }
 }
