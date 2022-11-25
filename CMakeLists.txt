@@ -50,7 +50,17 @@ message(STATUS "INI_DIR: ${INI_DIR}")
 endif()
 message(STATUS "PHP_INCLUDES: ${PHP_INCLUDES}")
 
-add_library(pipc SHARED main.cpp)
+add_library(pipc SHARED
+  src/pipc.cpp
+  include/pipc/message.h
+)
+
+target_compile_features(pipc PUBLIC cxx_std_17)
+target_compile_options(pipc PUBLIC -Wall -O2 -fpic)
+target_include_directories(pipc PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  /usr/local/include/iceoryx/v
+  ${PHP_INCLUDES})
 
 target_link_libraries(pipc PRIVATE
   phpcpp
@@ -63,9 +73,6 @@ set(INI pipc.ini)
 set(INI_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/ini/${INI})
 set(INI_COPY_TARGET ${EXTENSION_DIR}/${INI})
 set(INI_LINK_TARGET ${INI_DIR}/20-${INI})
-
-target_compile_features(pipc PUBLIC cxx_std_17)
-target_compile_options(pipc PUBLIC -Wall -O2 -fpic ${PHP_INCLUDES} -I/usr/local/include/iceoryx/v2.90.0)
 
 install(TARGETS pipc DESTINATION "${EXTENSION_DIR}")
 install(FILES ${INI_SOURCE} DESTINATION "${EXTENSION_DIR}")

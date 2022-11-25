@@ -1,5 +1,5 @@
 <?php
-pipc_initialize_publisher("pipc");
-$v = "Some message";
-pipc_send_message($v);
+    $publisher = new PipcPublisher();
+    $msg = "Some message";
+    $publisher->send_message($msg);
 ?>
