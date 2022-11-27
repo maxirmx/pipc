@@ -1,0 +1,91 @@
+#
+#   Copyright (c) 2022 Maxim Samsonov. All rights reserved.
+#   This file is a part of pipc
+#
+
+name: ubuntu
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.job }}-${{ github.head_ref || github.ref_name }}'
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    env:
+      MAKEFLAGS: -j4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: pipc
+          fetch-depth: 1
+
+      - name: Install packages
+        run: |
+          pipc/scripts/switch_version.sh
+          sudo apt update
+          sudo apt install php-dev libacl1-dev libncurses5-dev uuid-dev
+# Already there gcc g++ cmake pkg-config
+
+      - name: Checkout PHP-CPP
+        uses: actions/checkout@v3
+        with:
+          repository: CopernicaMarketingSoftware/PHP-CPP
+          path: PHP-CPP
+          fetch-depth: 1
+
+      - name: Build and install PHP-CPP
+        run: |
+          cd PHP-CPP
+          make
+          sudo make install
+
+      - name: Checkout iceoryx
+        uses: actions/checkout@v3
+        with:
+          repository: eclipse-iceoryx/iceoryx
+          path: iceoryx
+          fetch-depth: 1
+
+      - name: Cache iceoryx
+        uses: actions/cache@v3
+        with:
+          path: iceoryx/build
+          key: iceoryx-v2.90.0-0000
+
+      - name: Build and install iceoryx
+        run: |
+          cd iceoryx
+          cmake -Bbuild -Hiceoryx_meta -DBUILD_ALL=ON
+          cmake --build build
+          sudo cmake --install build
+# or
+# -DBUILD_ALL=ON
+# or
+# -DBUILD_TEST=ON -DINTROSPECTION=OFF -DBINDING_C=ON -DEXAMPLES=ON
+
+      - name: Build pipc extension
+        run: |
+          cd pipc
+          cmake -Bbuild
+          cmake --build build
+          sudo cmake --install build
+
+      - name: Run tests
+        run: |
+          set -o errexit -o pipefail -o noclobber -o nounset
+          cd pipc
+          iceperf-roudi &
+          export ROUDI_PID=$!
+          php test-r.php > 1.out &
+          php test-r.php > 2.out &
+          php test.php
+          kill -SIGTERM $ROUDI_PID
+          cat 1.out
+          cat 2.out
