@@ -1,7 +1,10 @@
+/*
+ *   Copyright (c) 2022 Maxim Samsonov. All rights reserved.
+ *   This file is a part of pipc
+ */
+
 #include <uuid/uuid.h>
-
 #include <iostream>
-
 #include "iceoryx_posh/runtime/posh_runtime.hpp"
 
 #include <object.h>
@@ -9,6 +12,7 @@
 using iox::cxx::TruncateToCapacity;
 
 namespace pipc {
+
 bool PipcObject::runtime_initialized = false;
 std::string PipcObject::app_name = "Uninitialized";
 
@@ -25,4 +29,5 @@ void PipcObject::init_runtime(const std::string& app_class)
         std::cout << "Initialized with app_name ='" << app_name << "'" << std::endl;
     }
 }
+
 }

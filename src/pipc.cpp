@@ -1,3 +1,8 @@
+/*
+ *   Copyright (c) 2022 Maxim Samsonov. All rights reserved.
+ *   This file is a part of pipc
+ */
+
 #include <iostream>
 
 #include "iceoryx_posh/popo/publisher.hpp"

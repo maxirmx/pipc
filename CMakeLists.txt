@@ -1,3 +1,8 @@
+#
+#   Copyright (c) 2022 Maxim Samsonov. All rights reserved.
+#   This file is a part of pipc
+#
+
 cmake_minimum_required(VERSION 3.16)
 project(pipc)
 
@@ -62,6 +67,7 @@ target_compile_options(pipc PUBLIC -Wall -O2 -fpic -march=native)
 target_include_directories(pipc PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   /usr/local/include/iceoryx/v
+  /usr/local/include/iceoryx/v2.90.0
   ${PHP_INCLUDES})
 
 target_link_libraries(pipc PRIVATE

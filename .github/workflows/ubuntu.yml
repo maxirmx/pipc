@@ -1,3 +1,8 @@
+#
+#   Copyright (c) 2022 Maxim Samsonov. All rights reserved.
+#   This file is a part of pipc
+#
+
 name: ubuntu
 
 on:
@@ -52,7 +57,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: iceoryx/build
-          key: iceoryx-v2.90-0000
+          key: iceoryx-v2.90.0-0000
 
       - name: Build and install iceoryx
         run: |

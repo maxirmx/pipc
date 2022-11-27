@@ -1,3 +1,8 @@
+/*
+ *   Copyright (c) 2022 Maxim Samsonov. All rights reserved.
+ *   This file is a part of pipc
+ */
+
 #pragma once
 
 #include <string>
