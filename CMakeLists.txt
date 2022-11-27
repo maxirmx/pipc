@@ -51,18 +51,21 @@ endif()
 message(STATUS "PHP_INCLUDES: ${PHP_INCLUDES}")
 
 add_library(pipc SHARED
+  src/object.cpp
   src/pipc.cpp
-  include/pipc/message.h
+  "include/message.h"
+  "include/object.h"
 )
 
 target_compile_features(pipc PUBLIC cxx_std_17)
-target_compile_options(pipc PUBLIC -Wall -O2 -fpic)
+target_compile_options(pipc PUBLIC -Wall -O2 -fpic -march=native)
 target_include_directories(pipc PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   /usr/local/include/iceoryx/v
   ${PHP_INCLUDES})
 
 target_link_libraries(pipc PRIVATE
+  uuid
   phpcpp
   iceoryx_posh
   iceoryx_hoofs

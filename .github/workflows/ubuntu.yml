@@ -25,7 +25,7 @@ jobs:
         run: |
           pipc/scripts/switch_version.sh
           sudo apt update
-          sudo apt install php-dev libacl1-dev libncurses5-dev
+          sudo apt install php-dev libacl1-dev libncurses5-dev uuid-dev
 # Already there gcc g++ cmake pkg-config
 
       - name: Checkout PHP-CPP
@@ -78,5 +78,9 @@ jobs:
           cd pipc
           iceperf-roudi &
           export ROUDI_PID=$!
+          php test-r.php > 1.out &
+          php test-r.php > 2.out &
           php test.php
           kill -SIGTERM $ROUDI_PID
+          cat 1.out
+          cat 2.out

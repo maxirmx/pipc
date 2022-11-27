@@ -1,28 +1,72 @@
 #include <iostream>
 
 #include "iceoryx_posh/popo/publisher.hpp"
-#include "iceoryx_posh/runtime/posh_runtime.hpp"
+#include "iceoryx_posh/popo/subscriber.hpp"
 
 #include <phpcpp.h>
 
-#include <pipc/common.h>
-#include <pipc/message.h>
+#include <message.h>
+#include <object.h>
 
 using namespace std;
+using iox::cxx::TruncateToCapacity;
 
 namespace pipc {
-class PipcPublisher : public Php::Base
+
+class PipcSubscriber : public Php::Base, public PipcObject
 {
 private:
-    static bool runtime_initialized;
-    static void init_runtime(void);
+    iox::popo::Subscriber<PipcMessage, PipcHeader> *subscriber;
+public:
+    PipcSubscriber(void): PipcObject("subscriber"), subscriber{nullptr} {
+    };
+    virtual ~PipcSubscriber() {
+        if (subscriber)
+            delete subscriber;
+    };
+
+    void __construct(void)
+    {
+        subscriber = new iox::popo::Subscriber<PipcMessage, PipcHeader>({
+            "Pipc",
+            "Pipc",
+            "default"
+        });
+    }
+
+    void receive_message(Php::Parameters &params)
+    {
+        while(true) {
+            auto takeResult = subscriber->take();
+            if (!takeResult.has_error())
+            {
+                std::cout << std::endl << app_name << " got message: " << takeResult.value()->data << std::endl;
+                params[0] =  (char*) takeResult.value()->data;
+                return;
+            }
+            else
+            {
+                if (takeResult.get_error() == iox::popo::ChunkReceiveResult::NO_CHUNK_AVAILABLE)
+                {
+                    cout << ".";
+                    cout.flush();
+                }
+                else
+                {
+                    std::cout << "Error receiving chunk." << std::endl;
+                }
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+};
+
+class PipcPublisher : public Php::Base, public PipcObject
+{
+private:
     iox::popo::Publisher<PipcMessage, PipcHeader> *publisher;
 public:
-    /**
-     *  C++ constructor and destructor
-     */
-    PipcPublisher(void): publisher{nullptr} {
-        init_runtime();
+    PipcPublisher(void): PipcObject("publisher"), publisher{nullptr} {
     };
     virtual ~PipcPublisher() {
         if (publisher)
@@ -31,18 +75,22 @@ public:
 
     void __construct(void)
     {
-        publisher = new iox::popo::Publisher<PipcMessage, PipcHeader>({"Pipc", "Pipc", "Message"});
+        publisher = new iox::popo::Publisher<PipcMessage, PipcHeader>({
+            "Pipc",
+            "Pipc",
+            "default"
+        });
     }
 
     void send_message(Php::Parameters &params)
     {
-        cout << "Sending message: '" << params[0] << "'" << endl;
         auto loan_result = publisher->loan();
         if (!loan_result.has_error()) {
             auto& sample = loan_result.value();
-            strncpy(sample->data, params[0], sizeof(sample->data)/sizeof(sample->data[0]));
+            strncpy(sample->data, static_cast<string>(params[0]).c_str(), sizeof(sample->data)/sizeof(sample->data[0]));
 //            auto timestamp = std::chrono::steady_clock::now();
             sample.getUserHeader().timestamp = 42;
+            cout << "Sending message: '" << sample->data << "'" << endl;
             sample.publish();
         }
         else {
@@ -51,17 +99,6 @@ public:
         }
     }
 };
-
-bool PipcPublisher::runtime_initialized = false;
-
-void PipcPublisher::init_runtime(void)
-{
-    if (!runtime_initialized) {
-        constexpr char app_name[] = "pipc-publisher";
-        iox::runtime::PoshRuntime::initRuntime(app_name);
-        runtime_initialized = true;
-    }
-}
 
 
 extern "C" {
@@ -79,12 +116,20 @@ extern "C" {
         // for the entire duration of the process (that's why it's static)
         static Php::Extension extension("pipc", "1.0");
 
-        Php::Class<PipcPublisher> channel("PipcPublisher");
-        channel.method<&PipcPublisher::__construct>("__construct");
-        channel.method<&PipcPublisher::send_message>("send_message", {
+        Php::Class<PipcPublisher> publisher("PipcPublisher");
+        publisher.method<&PipcPublisher::__construct>("__construct");
+        publisher.method<&PipcPublisher::send_message>("send_message", {
             Php::ByRef("message", Php::Type::String)
         });
-        extension.add(std::move(channel));
+        extension.add(std::move(publisher));
+
+        Php::Class<PipcSubscriber> subscriber("PipcSubscriber");
+        subscriber.method<&PipcSubscriber::__construct>("__construct");
+        subscriber.method<&PipcSubscriber::receive_message>("receive_message", {
+            Php::ByRef("message", Php::Type::String)
+        });
+        extension.add(std::move(subscriber));
+
 
         return extension;
     }
