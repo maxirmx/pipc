@@ -60,6 +60,8 @@ add_library(pipc SHARED
   src/pipc.cpp
   "include/message.h"
   "include/object.h"
+  "include/publisher.h"
+  "include/subscriber.h"
 )
 
 target_compile_features(pipc PUBLIC cxx_std_17)

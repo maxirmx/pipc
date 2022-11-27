@@ -3,108 +3,92 @@
  *   This file is a part of pipc
  */
 
-#include <iostream>
-
-#include "iceoryx_posh/popo/publisher.hpp"
-#include "iceoryx_posh/popo/subscriber.hpp"
-
-#include <phpcpp.h>
-
 #include <message.h>
-#include <object.h>
+#include <publisher.h>
+#include <subscriber.h>
 
 using namespace std;
 using iox::cxx::TruncateToCapacity;
 
 namespace pipc {
 
-class PipcSubscriber : public Php::Base, public PipcObject
+PipcSubscriber::PipcSubscriber(void): PipcObject("subscriber"), subscriber{nullptr}
 {
-private:
-    iox::popo::Subscriber<PipcMessage, PipcHeader> *subscriber;
-public:
-    PipcSubscriber(void): PipcObject("subscriber"), subscriber{nullptr} {
-    };
-    virtual ~PipcSubscriber() {
-        if (subscriber)
-            delete subscriber;
-    };
+}
 
-    void __construct(void)
-    {
-        subscriber = new iox::popo::Subscriber<PipcMessage, PipcHeader>({
-            "Pipc",
-            "Pipc",
-            "default"
-        });
-    }
-
-    void receive_message(Php::Parameters &params)
-    {
-        while(true) {
-            auto takeResult = subscriber->take();
-            if (!takeResult.has_error())
-            {
-                std::cout << std::endl << app_name << " got message: " << takeResult.value()->data << std::endl;
-                params[0] =  (char*) takeResult.value()->data;
-                return;
-            }
-            else
-            {
-                if (takeResult.get_error() == iox::popo::ChunkReceiveResult::NO_CHUNK_AVAILABLE)
-                {
-                    cout << ".";
-                    cout.flush();
-                }
-                else
-                {
-                    std::cout << "Error receiving chunk." << std::endl;
-                }
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
-    }
-};
-
-class PipcPublisher : public Php::Base, public PipcObject
+PipcSubscriber::~PipcSubscriber()
 {
-private:
-    iox::popo::Publisher<PipcMessage, PipcHeader> *publisher;
-public:
-    PipcPublisher(void): PipcObject("publisher"), publisher{nullptr} {
-    };
-    virtual ~PipcPublisher() {
-        if (publisher)
-            delete publisher;
-    };
+    if (subscriber)
+        delete subscriber;
+}
 
-    void __construct(void)
-    {
-        publisher = new iox::popo::Publisher<PipcMessage, PipcHeader>({
-            "Pipc",
-            "Pipc",
-            "default"
-        });
-    }
+void PipcSubscriber::__construct(void)
+{
+    subscriber = new iox::popo::Subscriber<PipcMessage, PipcHeader>({
+        "Pipc",
+        "Pipc",
+        "default"
+    });
+}
 
-    void send_message(Php::Parameters &params)
-    {
-        auto loan_result = publisher->loan();
-        if (!loan_result.has_error()) {
-            auto& sample = loan_result.value();
-            strncpy(sample->data, static_cast<string>(params[0]).c_str(), sizeof(sample->data)/sizeof(sample->data[0]));
-//            auto timestamp = std::chrono::steady_clock::now();
-            sample.getUserHeader().timestamp = 42;
-            cout << "Sending message: '" << sample->data << "'" << endl;
-            sample.publish();
+void PipcSubscriber::receive_message(Php::Parameters &params)
+{
+    while(true) {
+        auto takeResult = subscriber->take();
+        if (!takeResult.has_error()) {
+            std::cout << std::endl << app_name << " got message: " << takeResult.value()->data << std::endl;
+            params[0] =  (char*) takeResult.value()->data;
+            return;
         }
         else {
-            auto error = loan_result.get_error();
-            throw Php::Exception(std::string("Unable to loan shared memory, error code: ") + iox::popo::asStringLiteral(error));
+            if (takeResult.get_error() == iox::popo::ChunkReceiveResult::NO_CHUNK_AVAILABLE) {
+                cout << ".";
+                cout.flush();
+            }
+            else {
+                std::cout << "Error receiving chunk." << std::endl;
+            }
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-};
+}
 
+
+PipcPublisher::PipcPublisher(void): PipcObject("publisher"), publisher{nullptr}
+{
+}
+
+PipcPublisher::~PipcPublisher()
+{
+    if (publisher)
+        delete publisher;
+}
+
+void PipcPublisher::__construct(void)
+{
+    publisher = new iox::popo::Publisher<PipcMessage, PipcHeader>({
+        "Pipc",
+        "Pipc",
+        "default"
+    });
+}
+
+void PipcPublisher::send_message(Php::Parameters &params)
+{
+    auto loan_result = publisher->loan();
+    if (!loan_result.has_error()) {
+        auto& sample = loan_result.value();
+        strncpy(sample->data, static_cast<string>(params[0]).c_str(), sizeof(sample->data)/sizeof(sample->data[0]));
+//            auto timestamp = std::chrono::steady_clock::now();
+        sample.getUserHeader().timestamp = 42;
+        cout << "Sending message: '" << sample->data << "'" << endl;
+        sample.publish();
+    }
+    else {
+        auto error = loan_result.get_error();
+        throw Php::Exception(std::string("Unable to loan shared memory, error code: ") + iox::popo::asStringLiteral(error));
+    }
+}
 
 extern "C" {
 

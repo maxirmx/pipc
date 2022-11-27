@@ -17,6 +17,10 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.4', '8.1' ]
     env:
       MAKEFLAGS: -j4
     steps:
@@ -28,16 +32,26 @@ jobs:
 
       - name: Install packages
         run: |
-          pipc/scripts/switch_version.sh
+          pipc/scripts/switch_version.sh ${{ matrix.php }}
           sudo apt update
           sudo apt install php-dev libacl1-dev libncurses5-dev uuid-dev
 # Already there gcc g++ cmake pkg-config
 
       - name: Checkout PHP-CPP
+        if: matrix.php == '7.4'
         uses: actions/checkout@v3
         with:
           repository: CopernicaMarketingSoftware/PHP-CPP
           path: PHP-CPP
+          fetch-depth: 1
+
+      - name: Checkout PHP-CPP
+        if: matrix.php == '8.1'
+        uses: actions/checkout@v3
+        with:
+          repository: NobletSolutions/PHP-CPP
+          path: PHP-CPP
+          ref: php81
           fetch-depth: 1
 
       - name: Build and install PHP-CPP
@@ -54,21 +68,27 @@ jobs:
           fetch-depth: 1
 
       - name: Cache iceoryx
+        id: iceoryx-cache
         uses: actions/cache@v3
         with:
           path: iceoryx/build
           key: iceoryx-v2.90.0-0000
 
-      - name: Build and install iceoryx
+      - name: Build iceoryx
+        if: steps.iceoryx-cache.outputs.cache-hit != 'true'
         run: |
           cd iceoryx
           cmake -Bbuild -Hiceoryx_meta -DBUILD_ALL=ON
           cmake --build build
-          sudo cmake --install build
 # or
 # -DBUILD_ALL=ON
 # or
 # -DBUILD_TEST=ON -DINTROSPECTION=OFF -DBINDING_C=ON -DEXAMPLES=ON
+
+      - name: Install iceoryx
+        run: |
+          cd iceoryx
+          sudo cmake --install build
 
       - name: Build pipc extension
         run: |
@@ -83,9 +103,12 @@ jobs:
           cd pipc
           iceperf-roudi &
           export ROUDI_PID=$!
+          sleep 1
           php test-r.php > 1.out &
           php test-r.php > 2.out &
+          sleep 1
           php test.php
+          sleep 1
           kill -SIGTERM $ROUDI_PID
           cat 1.out
           cat 2.out
