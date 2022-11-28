@@ -58,6 +58,8 @@ message(STATUS "PHP_INCLUDES: ${PHP_INCLUDES}")
 add_library(pipc SHARED
   src/object.cpp
   src/pipc.cpp
+  src/publisher.cpp
+  src/subscriber.cpp
   "include/message.h"
   "include/object.h"
   "include/publisher.h"

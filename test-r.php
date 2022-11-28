@@ -1,6 +1,9 @@
 <?php
+    print("Creating pipc suscriber ...");
     $subscriber = new PipcSubscriber();
-    $msg = "No message";
+    print(" OK" . PHP_EOL);
+    $msg = "*** No message ***";
+    print("Waiting for message ...");
     $subscriber->receive_message($msg);
-    print($msg . PHP_EOL);
+    print(" received: '" . $msg . "'" . PHP_EOL);
 ?>

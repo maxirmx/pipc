@@ -16,8 +16,9 @@ class PipcPublisher : public Php::Base, public PipcObject
 private:
     iox::popo::Publisher<PipcMessage, PipcHeader> *publisher;
 public:
-    PipcPublisher(void);
-    ~PipcPublisher();
+    PipcPublisher(void) : PipcObject("publisher"), publisher{nullptr} { };
+    ~PipcPublisher() { if (publisher) delete publisher; }
+
     void __construct(void);
     void send_message(Php::Parameters &params);
 };
