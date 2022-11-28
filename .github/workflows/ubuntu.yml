@@ -101,7 +101,7 @@ jobs:
         run: |
           set -o errexit -o pipefail -o noclobber -o nounset
           cd pipc
-          iceperf-roudi &
+          iox-roudi &
           export ROUDI_PID=$!
           sleep 1
           php test-r.php > 1.out &

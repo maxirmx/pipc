@@ -78,7 +78,8 @@ void PipcPublisher::send_message(Php::Parameters &params)
     auto loan_result = publisher->loan();
     if (!loan_result.has_error()) {
         auto& sample = loan_result.value();
-        strncpy(sample->data, static_cast<string>(params[0]).c_str(), sizeof(sample->data)/sizeof(sample->data[0]));
+        strncpy(sample->data, static_cast<string>(params[0]).c_str(), sizeof(sample->data)-1);
+        sample->data[sizeof(sample->data)-1] = 0;
 //            auto timestamp = std::chrono::steady_clock::now();
         sample.getUserHeader().timestamp = 42;
         cout << "Sending message: '" << sample->data << "'" << endl;

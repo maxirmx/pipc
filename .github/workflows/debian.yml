@@ -21,16 +21,29 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '7.4' ]
+        php: [ '7.4', '8.1' ]
     env:
       MAKEFLAGS: -j4
     steps:
       - name: Install packages
         run: |
           apt-get update
-          apt-get -y install sudo git wget build-essential libssl-dev \
-                     software-properties-common php-dev libacl1-dev   \
-                     libncurses5-dev uuid-dev pkg-config
+          apt-get -y install sudo git wget build-essential libssl-dev    \
+                     software-properties-common libacl1-dev lsb-release  \
+                     libncurses5-dev uuid-dev pkg-config ca-certificates \
+                     apt-transport-https gnupg2 curl
+
+      - name: Install php-dev
+        if: matrix.php == '7.4'
+        run: apt-get -y install php-dev
+
+      - name: Install php-dev
+        if: matrix.php == '8.1'
+        run: |
+          echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/sury-php.list
+          curl -fsSL  https://packages.sury.org/php/apt.gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/sury-keyring.gpg
+          sudo apt-get update
+          sudo apt-get -y install php8.1-dev
 
       - name: Install CMake
         run: |
@@ -97,16 +110,16 @@ jobs:
           cd iceoryx
           sudo cmake --install build
 
-#      - name: Build pipc extension
-#        run: |
-#          cd pipc
-#          cmake -Bbuild
-#          cmake --build build
-#          sudo cmake --install build
+      - name: Build pipc extension
+        run: |
+          cd pipc
+          cmake -Bbuild
+          cmake --build build
+          sudo cmake --install build
 
 #      - name: Run tests
 #        run: |
-#          set -o errexit -o pipefail -o noclobber -o nounset
+#          set -o errexit -o noclobber -o nounset
 #          cd pipc
 #          iceperf-roudi &
 #          export ROUDI_PID=$!
