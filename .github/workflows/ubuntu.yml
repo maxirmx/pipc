@@ -104,11 +104,8 @@ jobs:
           iox-roudi &
           export ROUDI_PID=$!
           sleep 1
-          php test-r.php > 1.out &
-          php test-r.php > 2.out &
+          php test-s.php &
           sleep 1
-          php test.php
-          sleep 1
+          php test-l.php
+          sleep 10
           kill -SIGTERM $ROUDI_PID
-          cat 1.out
-          cat 2.out

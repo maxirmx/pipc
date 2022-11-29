@@ -19,7 +19,7 @@ void PipcPublisher::__construct(void)
     // create publisher with some options set
     iox::popo::PublisherOptions publisher_options;
     // the publishers offers single message only, no history
-    publisher_options.historyCapacity = 1U;
+    publisher_options.historyCapacity = 10U;
     publisher = new iox::popo::Publisher<PipcMessage, PipcHeader>(
         { "Pipc", "Pipc",  "default" },
         publisher_options

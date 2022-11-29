@@ -5,9 +5,9 @@
 
     for ($i = 1; $i <= 1000; $i++) {
         $msg = "Message #" . $i;
-        print("Sending '" . $msg . "'" . PHP_EOL );
+//        print("Sending '" . $msg . "'" . PHP_EOL );
         $publisher->send_message($msg);
-//        time_nanosleep(0, 50000000);
+        time_nanosleep(0, 50000000);
     }
     time_nanosleep(0, 5000000);
 ?>

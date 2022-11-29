@@ -3,11 +3,12 @@
  *   This file is a part of pipc
  */
 
-#include <iostream>
+#include <atomic>
 #include <mutex>
 
+#include <iceoryx_hoofs/cxx/optional.hpp>
 #include <iceoryx_posh/popo/subscriber.hpp>
-#include <iceoryx_posh/popo/listener.hpp>
+#include <iceoryx_posh/popo/wait_set.hpp>
 
 #include <phpcpp.h>
 
@@ -21,10 +22,9 @@ private:
     iox::popo::Subscriber<PipcMessage, PipcHeader> *subscriber;
     Php::Value callback;
     std::mutex callback_mtx;
-    iox::popo::Listener listener;
 
-    static const char *listenerErrorAsStringLiteral(const iox::popo::ListenerError value) noexcept;
-    static void on_message_received(iox::popo::Subscriber<PipcMessage, PipcHeader>* subscriber, PipcSubscriber* self);
+    std::atomic_bool keep_running;
+
     int64_t n_msg;      // number of messages received
     int64_t t_min;     // minimal delivery time (microseconds)
     int64_t t_max;     // maximum delivery time (microseconds)

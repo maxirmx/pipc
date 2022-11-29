@@ -14,7 +14,8 @@ static constexpr uint32_t ONE_MEGABYTE = 1024U * 1024;
 namespace pipc {
 
 struct PipcMessage {
-    char data[64 * ONE_KILOBYTE];
+    int64_t timestamp;
+    char data[64 * ONE_KILOBYTE - sizeof(int64_t)];
 };
 
 struct PipcHeader {
