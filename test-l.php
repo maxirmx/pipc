@@ -7,6 +7,7 @@
         $msg = "Message #" . $i;
         print("Sending '" . $msg . "'" . PHP_EOL );
         $publisher->send_message($msg);
-        usleep(500);
+//        time_nanosleep(0, 50000000);
     }
+    time_nanosleep(0, 5000000);
 ?>

@@ -4,7 +4,6 @@
  */
 
 #include <uuid/uuid.h>
-#include <iostream>
 #include <iceoryx_posh/runtime/posh_runtime.hpp>
 
 #include <object.h>

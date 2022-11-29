@@ -8,34 +8,33 @@
 #include <subscriber.h>
 
 using namespace std;
-using namespace Php;
 
 namespace pipc {
 extern "C" {
+   /**
+    *  PHP extension module definition
+    */
     PHPCPP_EXPORT void *get_module()
     {
-        static Extension extension("pipc", "1.0");
+        static Php::Extension extension("pipc", "1.0");
 
-        Class<PipcPublisher> publisher("PipcPublisher");
+        Php::Class<PipcPublisher> publisher("PipcPublisher");
         publisher.method<&PipcPublisher::__construct>("__construct");
         publisher.method<&PipcPublisher::send_message>("send_message", {
-            ByVal("message", Type::String)
+            Php::ByVal("message", Php::Type::String)
         });
-        extension.add(move(publisher));
+        extension.add(std::move(publisher));
 
-        Class<PipcSubscriber> subscriber("PipcSubscriber");
+        Php::Class<PipcSubscriber> subscriber("PipcSubscriber");
         subscriber.method<&PipcSubscriber::__construct>("__construct");
         subscriber.method<&PipcSubscriber::receive_message>("receive_message", {
-            ByRef("message", Type::String)
+            Php::ByRef("message", Php::Type::String)
         });
         subscriber.method<&PipcSubscriber::subscribe>("subscribe", {
-            ByVal("callback", Type::Callable)
+            Php::ByVal("callback", Php::Type::Callable)
         });
         subscriber.method<&PipcSubscriber::unsubscribe>("unsubscribe");
-        subscriber.method<&PipcSubscriber::unsubscribe>("get_stat", {
-            ByVal("stat", Type::Object)
-        });
-        extension.add(move(subscriber));
+        extension.add(std::move(subscriber));
 
         return extension;
     }

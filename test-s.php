@@ -12,7 +12,12 @@
     print(" OK" . PHP_EOL);
 
     sleep(60);
-    print("Unubscribing from messages ... ");
+    print("Unsubscribing from messages ... ");
     $subscriber->unsubscribe();
     print(" OK" . PHP_EOL);
+
+    print("Number of messages received: " . $subscriber->number_of_messages . PHP_EOL);
+    print("Average delivery time: " . $subscriber->average_delivery_time . " microseconds" . PHP_EOL);
+    print("Minimal delivery time: " . $subscriber->minimal_delivery_time . " microseconds" . PHP_EOL);
+    print("Maximal delivery time: " . $subscriber->maximal_delivery_time . " microseconds" . PHP_EOL);
 ?>
